@@ -29,14 +29,15 @@
 @ write your program from here:
 
 asm_func:
- 	PUSH {R14}
+	@ Move less frequently used registers up
+ 	MOV R9, R0
+ 	MOV R10, R1
+ 	MOV R11, R2
+ 	MOV R12, R3
 
-	BL SUBROUTINE
+ 	MOV R1, #0
+ 	LDR R3, [R12, #4]
+ 	LDR R4, [R12]
+ 	MUL R4, R3
 
- 	POP {R14}
-
-	BX LR
-
-SUBROUTINE:
-
-	BX LR
+ 	BX LR
