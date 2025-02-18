@@ -29,15 +29,26 @@
 @ write your program from here:
 
 asm_func:
-	@ Move less frequently used registers up
+	@ Reorganise registers
  	MOV R9, R0
  	MOV R10, R1
  	MOV R11, R2
  	MOV R12, R3
 
+	@ Compute F * S
+ 	LDR R3, [R12]
+ 	LDR R4, [R12, #4]
+ 	MUL R8, R3, R4
+
+ 	@ Flatten entry[] array
+ 	MOV R0, #0
  	MOV R1, #0
- 	LDR R3, [R12, #4]
- 	LDR R4, [R12]
- 	MUL R4, R3
+ 	MOV R2, #5
+flatten_entry:
+ 	LDR R4, [R10, R1]
+ 	ADD R0, R4
+ 	ADD R1, #4
+ 	SUBS R2, #1
+ 	BNE flatten_entry
 
  	BX LR
