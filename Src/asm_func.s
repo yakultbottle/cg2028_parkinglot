@@ -28,16 +28,20 @@
 
 @ write your program from here:
 
+.equ WORD_SIZE, 4
+.equ MAX_CARS_PER_LOT, 12
+
 asm_func:
 	@ Reorganise registers
  	MOV R9, R0
  	MOV R10, R1
  	MOV R11, R2
  	MOV R12, R3
+ 	MOV R6, MAX_CARS_PER_LOT
 
 	@ Compute F * S
  	LDR R3, [R12]
- 	LDR R4, [R12, #4]
+ 	LDR R4, [R12, WORD_SIZE]
  	MUL R8, R3, R4
 
  	@ Flatten entry[] array
@@ -47,8 +51,43 @@ asm_func:
 flatten_entry:
  	LDR R4, [R10, R1]
  	ADD R0, R4
- 	ADD R1, #4
+ 	ADD R1, WORD_SIZE
  	SUBS R2, #1
  	BNE flatten_entry
+
+ 	@ Add cars
+ 	MOV R1, #0
+ 	MOV R2, R8
+add_cars:
+	@ Check if R1 is pointing in bounds
+	CMP R2, #0
+	BEQ subtract_cars
+	@ Skip currently filled lots
+	LDR R3, [R9, R1]
+	SUBS R5, R6, R3
+	BNE is_not_filled
+	STR R6, [R12, R1]
+	ADD R1, WORD_SIZE
+	SUB R2, #1
+	B add_cars
+
+is_not_filled:
+	CMP R0, R5
+	BGT handle_excess
+
+	@ If remaining cars can all fit in this lot
+	ADD R3, R0
+	STR R3, [R12, R1]
+	MOV R0, #0
+	B iterate
+handle_excess:
+	STR R6, [R12, R1]
+	SUB R0, R5
+iterate:
+	ADD R1, WORD_SIZE
+	SUB R2, #1
+	B add_cars
+
+subtract_cars:
 
  	BX LR
