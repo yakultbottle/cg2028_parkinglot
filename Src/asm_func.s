@@ -61,7 +61,7 @@ flatten_entry:
 add_cars:
 	@ Check if R1 is pointing in bounds
 	CMP R2, #0
-	BEQ subtract_cars
+	BEQ handle_exit
 	@ Skip currently filled lots
 	LDR R3, [R9, R1]
 	SUBS R5, R6, R3
@@ -88,6 +88,7 @@ iterate:
 	SUB R2, #1
 	B add_cars
 
-subtract_cars:
+handle_exit:
+	MOV R0, #0 @initialize index register
 
  	BX LR
