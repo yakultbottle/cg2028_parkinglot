@@ -89,7 +89,7 @@ iterate:
 	B add_cars
 
 handle_exit:
-	MOV R0, #0 @initialize index register
+	MOV R0, #0 @initialize offset register
 
 subtract_cars:
 	@ R8 is F x S
