@@ -61,7 +61,7 @@ flatten_entry:
 add_cars:
 	@ Check if R1 is pointing in bounds
 	CMP R2, #0
-	BEQ subtract_cars
+	BEQ handle_exit
 	@ Skip currently filled lots
 	LDR R3, [R9, R1]
 	SUBS R5, R6, R3
@@ -88,6 +88,43 @@ iterate:
 	SUB R2, #1
 	B add_cars
 
-subtract_cars:
+handle_exit:
+	MOV R0, #0 @initialize index register
 
+subtract_cars:
+	@ R8 is F x S
+	@ times by 4 to compare since R0 is incremented by word size
+ 	CMP R0, R8, LSL #2
+ 	@ exit if all floors and sections have been cleared
+ 	BEQ exit
+ 	LDR R1, [R11, R0] @ exiting cars of curr level and section
+ 	LDR R6, [R12, R0] @ present status of curr level and section
+
+is_exit_empty:
+ 	@ move to next section if no exiting cars
+ 	CMP R1, #0
+ 	BEQ iterate_exit
+
+handle_section:
+	# set to 0 if greater than or equal
+	CMP R1, R6
+	BGE set_to_zero
+	@ else handle
+	BLT subtract_section
+
+set_to_zero:
+	MOV R6, #0
+	STR R6, [R12, R0]
+	B iterate_exit
+
+subtract_section:
+	SUB R6, R1
+	STR R6, [R12, R0]
+
+iterate_exit:
+	ADD R0, WORD_SIZE
+	CMP R0, R8, LSL #2
+	BLT subtract_cars
+
+exit:
  	BX LR
