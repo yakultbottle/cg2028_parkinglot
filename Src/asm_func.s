@@ -22,9 +22,22 @@
 
 @ Look-up table for registers:
 
-@ R0 ...
-@ R1 ...
-@ ...
+@ R0 - Remaining number of entering cars
+@ R1 - Offset for entry[] array, Offset for current lot/leave section
+@ R2 - Counter, used for looping
+@ R3 - Used to load F value from result[][] one time, Scratch register to load *lot values into
+@ R4 - Used to load S value from result[][] one time, Scratch register to load *entry/exit values into
+@ R5 - Scratch register used for diff values
+@ R6 - MAX_CARS_PER_LOT, 12
+@ R7 - Unused
+@ R8 - F * S - number of sections total among all floors
+@ R9 - Pointer to building[][]
+@ R10 - Pointer to entry[]
+@ R11 - Pointer to exit[][]
+@ R12 - Pointer to result[][]
+@ R13 - Reserved, SP
+@ R14 - Reserved, LP
+@ R15 - Reserved, PC
 
 @ write your program from here:
 
@@ -89,41 +102,40 @@ iterate:
 	B add_cars
 
 handle_exit:
-	MOV R0, #0 @initialize offset register
+	MOV R1, #0 @initialize offset register
 
 subtract_cars:
-	@ R8 is F x S
-	@ times by 4 to compare since R0 is incremented by word size
- 	CMP R0, R8, LSL #2
+	@ times by 4 to compare since R1 is incremented by word size
+ 	CMP R1, R8, LSL #2
  	@ exit if all floors and sections have been cleared
  	BEQ exit
- 	LDR R1, [R11, R0] @ exiting cars of curr level and section
- 	LDR R6, [R12, R0] @ present status of curr level and section
+ 	LDR R4, [R11, R1] @ exiting cars of curr level and section
+ 	LDR R3, [R12, R1] @ present status of curr level and section
 
 is_exit_empty:
  	@ move to next section if no exiting cars
- 	CMP R1, #0
+ 	CMP R4, #0
  	BEQ iterate_exit
 
 handle_section:
 	# set to 0 if greater than or equal
-	CMP R1, R6
+	CMP R4, R3
 	BGE set_to_zero
 	@ else handle
 	BLT subtract_section
 
 set_to_zero:
-	MOV R6, #0
-	STR R6, [R12, R0]
+	MOV R3, #0
+	STR R3, [R12, R1]
 	B iterate_exit
 
 subtract_section:
-	SUB R6, R1
-	STR R6, [R12, R0]
+	SUB R3, R4
+	STR R3, [R12, R1]
 
 iterate_exit:
-	ADD R0, WORD_SIZE
-	CMP R0, R8, LSL #2
+	ADD R1, WORD_SIZE
+	CMP R1, R8, LSL #2
 	BLT subtract_cars
 
 exit:
