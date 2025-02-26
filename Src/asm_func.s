@@ -28,7 +28,7 @@
 @ R3 - Used to load F value from result[][] one time, Scratch register to load *lot values into
 @ R4 - Used to load S value from result[][] one time, Scratch register to load *entry/exit values into
 @ R5 - Scratch register used for diff values
-@ R6 - MAX_CARS_PER_LOT, 12
+@ R6 - Unused
 @ R7 - Unused
 @ R8 - F * S - number of sections total among all floors
 @ R9 - Pointer to building[][]
@@ -50,17 +50,16 @@ asm_func:
  	MOV R10, R1
  	MOV R11, R2
  	MOV R12, R3
- 	MOV R6, MAX_CARS_PER_LOT
 
 	@ Compute F * S
  	LDR R3, [R12]
  	LDR R4, [R12, WORD_SIZE]
- 	MUL R8, R3, R4
 
  	@ Flatten entry[] array
  	MOV R0, #0
  	MOV R1, #0
  	MOV R2, #5
+ 	MUL R8, R3, R4
 flatten_entry:
  	LDR R4, [R10, R1]
  	ADD R0, R4
@@ -77,9 +76,9 @@ add_cars:
 	BEQ handle_exit
 	@ Skip currently filled lots
 	LDR R3, [R9, R1]
-	SUBS R5, R6, R3
+	RSBS R5, R3, MAX_CARS_PER_LOT
 	BNE is_not_filled
-	STR R6, [R12, R1]
+	STR R3, [R12, R1]
 	ADD R1, WORD_SIZE
 	SUB R2, #1
 	B add_cars
@@ -94,7 +93,8 @@ is_not_filled:
 	MOV R0, #0
 	B iterate
 handle_excess:
-	STR R6, [R12, R1]
+	MOV R3, MAX_CARS_PER_LOT
+	STR R3, [R12, R1]
 	SUB R0, R5
 iterate:
 	ADD R1, WORD_SIZE
